@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.sample
+package.json
+pnpm-locj.yaml
+pnpm-workspace.yaml
+tsconfig.json
+.git
