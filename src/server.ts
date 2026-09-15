@@ -1,13 +1,16 @@
 import "./config/config.env.js";
-import express from "express";
+import app from "./app.js";
+
 const PORT = process.env.PORT;
 
-const app = express();
+const server = () => {
+  try {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("Error starting server:", err);
+  }
+};
 
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
-
-app.listen(PORT, () => {
-  console.log("SERVER RUNNING ON PORT:", `http://localhost:${PORT}`);
-});
+server();
