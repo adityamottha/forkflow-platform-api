@@ -1,4 +1,13 @@
-export interface IAuthUser {
+import { Document, Types } from "mongoose";
+import {
+  USER_ROLES,
+  ACCOUNT_CREATED_BY,
+  ACCOUNT_STATUS,
+  RESTAURANT_APPROVED_STATUS,
+} from "./auth.enum.constants.js";
+
+// INTERFACE ---------------------------------------------------------
+export interface IAuthUser extends Document {
   // identity
   email: string;
   phoneNumber: string;
@@ -20,53 +29,49 @@ export interface IAuthUser {
   refreshTokenVersion: number;
 
   // authorization
-  role:
-    "ADMIN" | "CUSTOMER" | "DELIVERY_PARTNER" | "RESTAURANT_OWNER" | "SUPPORT";
+  role: (typeof USER_ROLES)[number];
 
   // account creation
-  accountCreatedBy: "SELF" | "ADMIN";
-  createdBy?: string;
+  accountCreatedBy: (typeof ACCOUNT_CREATED_BY)[number];
+  createdBy?: Types.ObjectId;
 
   // profile
   isProfileCompleted: boolean;
 
-  // Account lifecycle
-  accountStatus: "PENDING" | "ACTIVE" | "SUSPENDED" | "BLOCKED" | "DELETED";
-
+  // account lifecycle
+  accountStatus: (typeof ACCOUNT_STATUS)[number];
   suspendedAt?: Date;
   blockedAt?: Date;
   blockedReason?: string;
 
-  //   verification
+  // verification
   isVerifiedUser: boolean;
   userVerifiedAt?: Date;
-  verifiedBy?: string;
+  verifiedBy?: Types.ObjectId;
 
-  //   restaurant approval
-  restaurantApprovedStatus:
-    "NOT_APPLICABLE" | "APPROVED" | "PENDING" | "REJECTED";
-
+  // restaurant approval
+  restaurantApprovedStatus: (typeof RESTAURANT_APPROVED_STATUS)[number];
   restaurantApprovedAt?: Date;
-  restaurantApprovedBy?: string;
+  restaurantApprovedBy?: Types.ObjectId;
   restaurantRejectionReason?: string;
 
-  // perm delete account
+  // permanent delete
   isDeletedUser: boolean;
   userPermanentDeletedAt?: Date;
 
-  // temp delete account
+  // temporary delete
   isTemporaryDeletedUser: boolean;
   userTemporaryDeletedAt?: Date;
 
-  // reports will block account if more then 30
-  whoReportAccounts: string[];
+  // reports
+  whoReportAccounts: Types.ObjectId[];
   countReportAccount: number;
 
-  // failed attemps
+  // failed attempts
   failedLoginAttempts: number;
   lastFailedLoginAt?: Date;
 
-  //   timestamps
+  // timestamps
   createdAt: Date;
   updatedAt: Date;
 }
