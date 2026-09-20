@@ -11,6 +11,8 @@ import {
   verifyForgotPasswordOTPSchema,
   resetPasswordSchema,
   changePasswordSchema,
+  temporaryDeleteAccountSchema,
+  restoreAccountSchema,
 } from "./auth.schema.js";
 
 export class AuthController {
@@ -205,6 +207,72 @@ export class AuthController {
     return res
       .status(200)
       .json(new ApiResponse(200, result, "Password changed successfully"));
+  }
+
+  // TEMPORARY DELETE ACCOUNT CONTROLLER -----------------
+  async temporaryDeleteAccount(req: Request, res: Response) {
+    const validatedData = temporaryDeleteAccountSchema.parse(req.body);
+
+    const userId = req.user?._id?.toString();
+
+    if (!userId) {
+      throw new ApiError(401, "Unauthorized request");
+    }
+
+    const result = await authService.temporaryDeleteAccount(
+      userId,
+      validatedData.password,
+    );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", cookieOptions)
+      .clearCookie("refreshToken", cookieOptions)
+      .json(
+        new ApiResponse(
+          200,
+          result,
+          "Account temporarily deleted successfully",
+        ),
+      );
+  }
+
+  // RESTORE ACCOUNT CONTROLLER -------------------------
+  async restoreAccount(req: Request, res: Response) {
+    const validatedData = restoreAccountSchema.parse(req.body);
+
+    const result = await authService.restoreAccount(
+      validatedData.email,
+      validatedData.password,
+    );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", result.accessToken, cookieOptions)
+      .cookie("refreshToken", result.refreshToken, cookieOptions)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            userId: result.userId,
+            email: result.email,
+            isTemporaryDeletedUser: result.isTemporaryDeletedUser,
+          },
+          "Account restored successfully",
+        ),
+      );
   }
 }
 

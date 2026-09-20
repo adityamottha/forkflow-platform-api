@@ -102,8 +102,24 @@ export const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+// TEMPORARY DELETE ACCOUNT
+export const temporaryDeleteAccountSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+
+// RESTORE ACCOUNT
+export const restoreAccountSchema = z.object({
+  email: z.string().trim().email("Invalid email address").toLowerCase(),
+
+  password: z.string().min(1, "Password is required"),
+});
+
 // TYPES -----------------
 
+export type RestoreAccountInput = z.infer<typeof restoreAccountSchema>;
+export type TemporaryDeleteAccountInput = z.infer<
+  typeof temporaryDeleteAccountSchema
+>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 

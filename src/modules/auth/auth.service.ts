@@ -464,6 +464,95 @@ export class AuthService {
       message: "Password changed successfully",
     };
   }
+
+  // TEMPORARY DELETE ACCOUNT -----------------------
+  async temporaryDeleteAccount(userId: string, password: string) {
+    const user = await authRepository.findByIdWithPassword(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(400, "This account is already temporarily deleted");
+    }
+
+    if (!user.password) {
+      throw new ApiError(400, "Password is not available for this account");
+    }
+
+    const isPasswordValid = await comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Incorrect password");
+    }
+
+    const deletedUser = await authRepository.temporaryDeleteAccount(userId);
+
+    if (!deletedUser) {
+      throw new ApiError(500, "Failed to temporarily delete account");
+    }
+
+    return {
+      userId: deletedUser._id,
+      email: deletedUser.email,
+      isTemporaryDeletedUser: deletedUser.isTemporaryDeletedUser,
+      userTemporaryDeletedAt: deletedUser.userTemporaryDeletedAt,
+    };
+  }
+
+  // RESTORE ACCOUNT SERVICE -----------------
+  async restoreAccount(email: string, password: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await authRepository.findByEmailWithPassword(normalizedEmail);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+
+    if (!user.isTemporaryDeletedUser) {
+      throw new ApiError(400, "This account is not temporarily deleted");
+    }
+
+    if (!user.password) {
+      throw new ApiError(400, "Password is not available for this account");
+    }
+
+    const isPasswordValid = await comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Incorrect password");
+    }
+
+    const restoredUser = await authRepository.restoreAccount(
+      user._id.toString(),
+    );
+
+    if (!restoredUser) {
+      throw new ApiError(500, "Failed to restore account");
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      restoredUser._id.toString(),
+    );
+
+    return {
+      userId: restoredUser._id,
+      email: restoredUser.email,
+      isTemporaryDeletedUser: restoredUser.isTemporaryDeletedUser,
+      accessToken,
+      refreshToken,
+    };
+  }
 }
 
 export const authService = new AuthService();

@@ -65,4 +65,16 @@ router.patch(
   AsyncHandler((req, res) => authController.changePassword(req, res)),
 );
 
+// TEMPORARY DELETE ACCOUNT
+router.delete(
+  "/temporary-delete",
+  verifyJWT,
+  AsyncHandler((req, res) => authController.temporaryDeleteAccount(req, res)),
+);
+
+// RESTORE ACCOUNT
+router.patch(
+  "/restore-account",
+  AsyncHandler((req, res) => authController.restoreAccount(req, res)),
+);
 export default router;

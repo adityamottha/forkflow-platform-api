@@ -80,6 +80,46 @@ export class AuthRepository {
   async findByIdWithPassword(userId: string) {
     return AuthUser.findById(userId).select("+password");
   }
+
+  // Temp delete account
+  async temporaryDeleteAccount(userId: string) {
+    return AuthUser.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          isTemporaryDeletedUser: true,
+          userTemporaryDeletedAt: new Date(),
+        },
+        $inc: {
+          refreshTokenVersion: 1,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  }
+
+  // RESTORE ACCOUNT
+  async restoreAccount(userId: string) {
+    return AuthUser.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          isTemporaryDeletedUser: false,
+          userTemporaryDeletedAt: null,
+        },
+        $inc: {
+          refreshTokenVersion: 1,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  }
 }
 
 export const authRepository = new AuthRepository();
