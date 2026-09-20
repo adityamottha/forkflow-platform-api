@@ -10,16 +10,11 @@ import {
 export interface IAuthUser extends Document {
   // identity
   email: string;
-  phoneNumber: string;
 
   // email
   isEmailVerified: boolean;
   emailVerifiedAt?: Date;
   emailChangedAt?: Date;
-
-  // phone
-  isPhoneNumberVerified: boolean;
-  phoneNumberChangedAt?: Date;
 
   // authentication
   password: string;

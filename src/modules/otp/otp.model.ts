@@ -12,7 +12,7 @@ const otpSchema = new Schema<IOTP>(
       index: true,
     },
 
-    identifier: {
+    email: {
       type: String,
       required: true,
       trim: true,

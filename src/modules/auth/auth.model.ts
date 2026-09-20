@@ -19,14 +19,6 @@ const authUserSchema = new Schema<IAuthUser>(
       trim: true,
       index: true,
     },
-    phoneNumber: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      index: true,
-    },
-
     // email
     isEmailVerified: {
       type: Boolean,
@@ -36,15 +28,6 @@ const authUserSchema = new Schema<IAuthUser>(
       type: Date,
     },
     emailChangedAt: {
-      type: Date,
-    },
-
-    // phone
-    isPhoneNumberVerified: {
-      type: Boolean,
-      default: false,
-    },
-    phoneNumberChangedAt: {
       type: Date,
     },
 

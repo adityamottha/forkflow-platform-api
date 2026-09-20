@@ -1,16 +1,27 @@
-import { Document, Types } from "mongoose";
-import { OTPType, OTPPurpose } from "./otp.enum.constants.js";
+import type { Document, Types } from "mongoose";
+
+import type { OTPPurpose, OTPType } from "./otp.enum.constants.js";
 
 export interface IOTP extends Document {
-  userId?: Types.ObjectId;
-  identifier: string;
+  userId?: Types.ObjectId | null;
+
+  email: string;
+
   otpHash: string;
+
   type: OTPType;
+
   purpose: OTPPurpose;
+
   expiresAt: Date;
+
   attempts: number;
+
   verified: boolean;
+
+  lastSentAt?: Date | null;
+
   createdAt: Date;
-  lastSentAt: Date;
+
   updatedAt: Date;
 }

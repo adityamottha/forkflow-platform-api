@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 
 import { OTPModel } from "../otp/otp.model.js";
 import { OTPPurpose, OTPType } from "../otp/otp.enum.constants.js";
+import { authNotification } from "../notification/auth.notification.js";
 
 import { ApiError } from "../../utils/apiError.js";
 
@@ -16,10 +17,10 @@ export class OTPService {
     return crypto.randomInt(0, 1_000_000).toString().padStart(OTP_LENGTH, "0");
   }
 
-  async createRegistrationOTP(userId: string, identifier: string) {
+  async createRegistrationOTP(userId: string, email: string) {
     const existingOTP = await OTPModel.findOne({
       userId,
-      identifier,
+      email,
       type: OTPType.EMAIL_VERIFICATION,
       purpose: OTPPurpose.REGISTER,
       verified: false,
@@ -58,20 +59,22 @@ export class OTPService {
     // Create OTP document
     const otpDocument = await OTPModel.create({
       userId,
-      identifier,
+      email,
       otpHash,
       type: OTPType.EMAIL_VERIFICATION,
       purpose: OTPPurpose.REGISTER,
       expiresAt,
       attempts: 0,
       verified: false,
+      lastSentAt: new Date(),
     });
 
     // Send OTP
-    // await mailService.sendOTP({
-    //   email: identifier,
-    //   otp,
-    // });
+    await authNotification.sendRegistrationOTP({
+      email,
+      otp,
+      expiresInMinutes: OTP_EXPIRY_MINUTES,
+    });
 
     return {
       otpId: otpDocument._id,

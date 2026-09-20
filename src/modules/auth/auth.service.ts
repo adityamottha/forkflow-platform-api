@@ -8,10 +8,10 @@ import { ApiError } from "../../utils/apiError.js";
 
 export class AuthService {
   async register(data: RegisterInput) {
-    const { identifier, password } = data;
+    const { email, password } = data;
 
     // 1. Check if user already exists
-    const existingUser = await authRepository.findByEmail(identifier);
+    const existingUser = await authRepository.findByEmail(email);
 
     // 2. Existing user
     if (existingUser) {
@@ -40,9 +40,10 @@ export class AuthService {
 
     // 4. Create new user
     const user = await authRepository.createUser({
-      email: identifier,
+      email: email,
       password: hashedPassword,
       isEmailVerified: false,
+      role: "CUSTOMER",
     });
 
     // 5. Create and send registration OTP
