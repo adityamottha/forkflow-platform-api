@@ -13,3 +13,9 @@ export enum OTPPurpose {
   CHANGE_EMAIL = "CHANGE_EMAIL",
   CHANGE_PHONE = "CHANGE_PHONE",
 }
+
+export const OTP_LENGTH = 6;
+export const OTP_EXPIRY_MINUTES = 10;
+export const OTP_RESEND_COOLDOWN_SECONDS = 30;
+export const MAX_OTP_ATTEMPTS = 5;
+export const OTP_BLOCK_DURATION_HOURS = 1;

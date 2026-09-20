@@ -6,11 +6,11 @@ import { OTPPurpose, OTPType } from "../otp/otp.enum.constants.js";
 import { authNotification } from "../notification/auth.notification.js";
 
 import { ApiError } from "../../utils/apiError.js";
-
-const OTP_LENGTH = 6;
-const OTP_EXPIRY_MINUTES = 10;
-const OTP_RESEND_COOLDOWN_SECONDS = 30;
-const MAX_OTP_ATTEMPTS = 5;
+import {
+  OTP_LENGTH,
+  OTP_EXPIRY_MINUTES,
+  OTP_RESEND_COOLDOWN_SECONDS,
+} from "../otp/otp.enum.constants.js";
 
 export class OTPService {
   private generateOTP(): string {

@@ -19,6 +19,7 @@ export interface IOTP extends Document {
 
   verified: boolean;
 
+  blockedUntil: Date;
   lastSentAt?: Date | null;
 
   createdAt: Date;

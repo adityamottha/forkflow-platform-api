@@ -52,6 +52,11 @@ const otpSchema = new Schema<IOTP>(
       default: false,
     },
 
+    blockedUntil: {
+      type: Date,
+      default: null,
+    },
+
     lastSentAt: {
       type: Date,
       default: null,
