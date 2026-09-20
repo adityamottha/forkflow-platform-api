@@ -169,6 +169,41 @@ export class AuthService {
       message: "Email verified successfully",
     };
   }
+
+  // RESEND VERIFICATION CODE =====================================
+
+  // RESEND VERIFICATION OTP SERVICE
+  async resendVerificationOTP(email: string) {
+    // 1. Normalize email
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 2. Find user
+    const user = await authRepository.findByEmail(normalizedEmail);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    // 3. Check if email is already verified
+    if (user.isEmailVerified) {
+      throw new ApiError(400, "Email is already verified");
+    }
+
+    // 4. Create and send new verification OTP
+    const otpResult = await otpService.createRegistrationOTP(
+      user._id.toString(),
+      user.email,
+    );
+
+    // 5. Return result
+    return {
+      userId: user._id,
+      email: user.email,
+      otpSent: true,
+      expiresAt: otpResult.expiresAt,
+      message: "Verification OTP sent successfully",
+    };
+  }
 }
 
 export const authService = new AuthService();

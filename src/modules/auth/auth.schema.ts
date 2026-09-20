@@ -21,6 +21,21 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+// VERIFY USER EMAIL -------------------------------------
+export const verifyEmailSchema = z.object({
+  email: z.string().trim().email("Invalid email address").toLowerCase(),
+
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "OTP must be 6 digits"),
+});
+
+// RESEND VERIFICATION OTP ---------------------------
+export const resendVerificationOTPSchema = z.object({
+  email: z.string().trim().email("Invalid email address").toLowerCase(),
+});
+
 // LOGIN SCHEMA --------------------------------
 
 export const loginSchema = z.object({
@@ -34,3 +49,8 @@ export const loginSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationOTPInput = z.infer<
+  typeof resendVerificationOTPSchema
+>;
