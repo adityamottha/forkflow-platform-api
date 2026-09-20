@@ -75,6 +75,11 @@ export class AuthRepository {
       },
     );
   }
+
+  // change password
+  async findByIdWithPassword(userId: string) {
+    return AuthUser.findById(userId).select("+password");
+  }
 }
 
 export const authRepository = new AuthRepository();

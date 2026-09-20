@@ -58,4 +58,11 @@ router.post(
   AsyncHandler((req, res) => authController.resetPassword(req, res)),
 );
 
+// CHANGE PASSWORD
+router.patch(
+  "/change-password",
+  verifyJWT,
+  AsyncHandler((req, res) => authController.changePassword(req, res)),
+);
+
 export default router;

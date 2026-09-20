@@ -10,6 +10,7 @@ import {
   resendVerificationOTPSchema,
   verifyForgotPasswordOTPSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } from "./auth.schema.js";
 
 export class AuthController {
@@ -183,6 +184,27 @@ export class AuthController {
     return res
       .status(200)
       .json(new ApiResponse(200, result, "Password reset successfully"));
+  }
+
+  // CHANGE PASSWORD CONTROLLER ---------------------------
+  async changePassword(req: Request, res: Response) {
+    const validatedData = changePasswordSchema.parse(req.body);
+
+    const userId = req.user?._id?.toString();
+
+    if (!userId) {
+      throw new ApiError(401, "Unauthorized request");
+    }
+
+    const result = await authService.changePassword(
+      userId,
+      validatedData.currentPassword,
+      validatedData.newPassword,
+    );
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, result, "Password changed successfully"));
   }
 }
 

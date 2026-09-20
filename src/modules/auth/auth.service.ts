@@ -415,6 +415,55 @@ export class AuthService {
       message: "Password reset successfully",
     };
   }
+
+  // CHANGE PASSWORD ---------------------------
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await authRepository.findByIdWithPassword(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(403, "This account is temporarily deleted");
+    }
+
+    if (!user.password) {
+      throw new ApiError(400, "Password is not available for this account");
+    }
+
+    const isCurrentPasswordValid = await comparePassword(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new ApiError(401, "Current password is incorrect");
+    }
+
+    if (currentPassword === newPassword) {
+      throw new ApiError(
+        400,
+        "New password must be different from current password",
+      );
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await authRepository.updatePassword(userId, hashedPassword);
+
+    return {
+      message: "Password changed successfully",
+    };
+  }
 }
 
 export const authService = new AuthService();
