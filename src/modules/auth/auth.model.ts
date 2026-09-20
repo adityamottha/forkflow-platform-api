@@ -1,5 +1,9 @@
+import "../../config/config.env.js";
 import { Schema, model } from "mongoose";
-import type { IAuthUser } from "./auth.types.js";
+import type { Model } from "mongoose";
+import type { IAuthUser, IAuthUserMethods } from "./auth.types.js";
+import jwt from "jsonwebtoken";
+import type { StringValue } from "ms";
 import {
   USER_ROLES,
   ACCOUNT_CREATED_BY,
@@ -8,7 +12,11 @@ import {
 } from "./auth.enum.constants.js";
 
 // Schema
-const authUserSchema = new Schema<IAuthUser>(
+const authUserSchema = new Schema<
+  IAuthUser,
+  Model<IAuthUser, {}, IAuthUserMethods>,
+  IAuthUserMethods
+>(
   {
     // ── identity ─────────────────────────────
     email: {
@@ -174,9 +182,40 @@ const authUserSchema = new Schema<IAuthUser>(
     versionKey: false,
   },
 );
+// GENERATE ACCESS TOKEN
+authUserSchema.methods.generateAccessToken = function (): string {
+  const accessTokenKey = process.env.ACCESS_TOKEN_KEY;
+  if (!accessTokenKey) {
+    throw new Error("ACCESS_TOKEN_KEY is not configured");
+  }
+  const accessTokenExpiry =
+    (process.env.ACCESS_TOKEN_EXPIRY as StringValue) || "15m";
+  return jwt.sign(
+    { userId: this._id.toString(), role: this.role },
+    accessTokenKey,
+    { expiresIn: accessTokenExpiry },
+  );
+};
+// GENERATE REFRESH TOKEN
+authUserSchema.methods.generateRefreshToken = function (): string {
+  const refreshTokenKey = process.env.REFRESH_TOKEN_KEY;
+  if (!refreshTokenKey) {
+    throw new Error("REFRESH_TOKEN_KEY is not configured");
+  }
+  const refreshTokenExpiry =
+    (process.env.REFRESH_TOKEN_EXPIRY as StringValue) || "7d";
+  return jwt.sign(
+    { userId: this._id.toString(), tokenVersion: this.refreshTokenVersion },
+    refreshTokenKey,
+    { expiresIn: refreshTokenExpiry },
+  );
+};
 
 // Indexes (common query patterns)
 authUserSchema.index({ role: 1, accountStatus: 1 });
 authUserSchema.index({ isDeletedUser: 1, isTemporaryDeletedUser: 1 });
 
-export const AuthUser = model<IAuthUser>("AuthUser", authUserSchema);
+export const AuthUser = model<
+  IAuthUser,
+  Model<IAuthUser, {}, IAuthUserMethods>
+>("AuthUser", authUserSchema);

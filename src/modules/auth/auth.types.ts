@@ -70,3 +70,8 @@ export interface IAuthUser extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IAuthUserMethods {
+  generateAccessToken(): string;
+  generateRefreshToken(): string;
+}
