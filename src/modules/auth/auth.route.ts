@@ -26,4 +26,10 @@ router.post(
   AsyncHandler((req, res) => authController.login(req, res)),
 );
 
+// Refresh-access-token
+router.post(
+  "/refresh-token",
+  AsyncHandler((req, res) => authController.refreshAccessToken(req, res)),
+);
+
 export default router;

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { ApiResponse } from "../../utils/apiResponse.js";
+import { ApiError } from "../../utils/apiError.js";
 import { authService } from "./auth.service.js";
 import {
   registerSchema,
@@ -48,9 +49,67 @@ export class AuthController {
 
     const result = await authService.login(validatedData);
 
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+    };
+
     return res
       .status(200)
-      .json(new ApiResponse(200, result, "Login successful"));
+      .cookie("accessToken", result.accessToken, options)
+      .cookie("refreshToken", result.refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            userId: result.userId,
+            email: result.email,
+            role: result.role,
+            isEmailVerified: result.isEmailVerified,
+            isProfileCompleted: result.isProfileCompleted,
+            refreshToken: result.refreshToken,
+            accessToken: result.accessToken,
+          },
+          "Login successful",
+        ),
+      );
+  }
+
+  // REFRESH-ACCESS-TOKEN ------------------------------
+  async refreshAccessToken(req: Request, res: Response) {
+    // Get refresh token from cookie
+    // For mobile apps, you can optionally get it from the body
+    const incomingRefreshToken =
+      req.cookies?.refreshToken || req.body?.refreshToken;
+
+    if (!incomingRefreshToken) {
+      throw new ApiError(401, "Refresh token is required");
+    }
+
+    // Call service
+    const { accessToken, refreshToken } =
+      await authService.refreshAccessToken(incomingRefreshToken);
+
+    // Cookie options
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+    };
+
+    // Set new access and refresh tokens
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken },
+          "Access token refreshed successfully",
+        ),
+      );
   }
 }
 

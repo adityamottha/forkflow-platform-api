@@ -1,5 +1,6 @@
 import { hashPassword, comparePassword } from "../../utils/password.js";
 import { generateAccessAndRefreshToken } from "../../utils/refAccToken.js";
+import type { IRefreshTokenPayload } from "./auth.types.js";
 
 import { authRepository } from "./auth.repository.js";
 import { otpRepository } from "../otp/otp.repository.js";
@@ -12,6 +13,7 @@ import {
   OTP_BLOCK_DURATION_HOURS,
   MAX_OTP_ATTEMPTS,
 } from "../otp/otp.enum.constants.js";
+import jwt from "jsonwebtoken";
 
 export class AuthService {
   // REGISTER USER SERVICE -----------------------------------------------------
@@ -251,6 +253,46 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  // REFRESH ACCESS TOKEN ---------------------------
+  async refreshAccessToken(incomingRefreshToken: string) {
+    // Check refresh token is available
+    if (!incomingRefreshToken) {
+      throw new ApiError(401, "Unauthorized request!");
+    }
+    // Check refresh token secret
+    const refreshTokenKey = process.env.REFRESH_TOKEN_KEY;
+    if (!refreshTokenKey) {
+      throw new ApiError(500, "REFRESH_TOKEN_KEY is not configured");
+    }
+    let decodedToken: IRefreshTokenPayload;
+    try {
+      decodedToken = jwt.verify(
+        incomingRefreshToken,
+        refreshTokenKey,
+      ) as IRefreshTokenPayload;
+    } catch {
+      throw new ApiError(401, "Invalid or expired refresh token");
+    }
+    // Validate required payload fields
+    if (!decodedToken.userId || typeof decodedToken.tokenVersion !== "number") {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+    // Find user
+    const user = await authRepository.findById(decodedToken.userId);
+    if (!user) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+    // Check token version
+    if (decodedToken.tokenVersion !== user.refreshTokenVersion) {
+      throw new ApiError(401, "Refresh token expired or revoked");
+    }
+    // Generate new tokens
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id.toString(),
+    );
+    return { accessToken, refreshToken };
   }
 }
 

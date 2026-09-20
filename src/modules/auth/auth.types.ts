@@ -5,7 +5,7 @@ import {
   ACCOUNT_STATUS,
   RESTAURANT_APPROVED_STATUS,
 } from "./auth.enum.constants.js";
-
+import type { JwtPayload } from "jsonwebtoken";
 // INTERFACE ---------------------------------------------------------
 export interface IAuthUser extends Document {
   // identity
@@ -74,4 +74,9 @@ export interface IAuthUser extends Document {
 export interface IAuthUserMethods {
   generateAccessToken(): string;
   generateRefreshToken(): string;
+}
+
+export interface IRefreshTokenPayload extends JwtPayload {
+  userId: string;
+  tokenVersion: number;
 }
