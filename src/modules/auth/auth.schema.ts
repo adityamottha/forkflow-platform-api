@@ -114,8 +114,15 @@ export const restoreAccountSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-// TYPES -----------------
+// PERMANENT DELETE ACCOUNT
+export const permanentDeleteAccountSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
 
+// TYPES -----------------
+export type PermanentDeleteAccountInput = z.infer<
+  typeof permanentDeleteAccountSchema
+>;
 export type RestoreAccountInput = z.infer<typeof restoreAccountSchema>;
 export type TemporaryDeleteAccountInput = z.infer<
   typeof temporaryDeleteAccountSchema

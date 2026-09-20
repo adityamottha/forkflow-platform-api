@@ -13,6 +13,7 @@ import {
   changePasswordSchema,
   temporaryDeleteAccountSchema,
   restoreAccountSchema,
+  permanentDeleteAccountSchema,
 } from "./auth.schema.js";
 
 export class AuthController {
@@ -271,6 +272,40 @@ export class AuthController {
             isTemporaryDeletedUser: result.isTemporaryDeletedUser,
           },
           "Account restored successfully",
+        ),
+      );
+  }
+
+  // PERMANENT DELETE ACCOUNT CONTROLLER ---------------------------------
+  async permanentlyDeleteAccount(req: Request, res: Response) {
+    const validatedData = permanentDeleteAccountSchema.parse(req.body);
+
+    const userId = req.user?._id?.toString();
+
+    if (!userId) {
+      throw new ApiError(401, "Unauthorized request");
+    }
+
+    const result = await authService.permanentlyDeleteAccount(
+      userId,
+      validatedData.password,
+    );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", cookieOptions)
+      .clearCookie("refreshToken", cookieOptions)
+      .json(
+        new ApiResponse(
+          200,
+          result,
+          "Account permanently deleted successfully",
         ),
       );
   }

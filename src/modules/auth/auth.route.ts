@@ -77,4 +77,11 @@ router.patch(
   "/restore-account",
   AsyncHandler((req, res) => authController.restoreAccount(req, res)),
 );
+
+// PERMANENT DELETE ACCOUNT
+router.delete(
+  "/permanent-delete",
+  verifyJWT,
+  AsyncHandler((req, res) => authController.permanentlyDeleteAccount(req, res)),
+);
 export default router;

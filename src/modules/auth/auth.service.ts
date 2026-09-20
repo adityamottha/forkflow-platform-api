@@ -553,6 +553,45 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  // PERMANENT DELETE ACCOUNT SERVICE ----------------------------------
+  async permanentlyDeleteAccount(userId: string, password: string) {
+    const user = await authRepository.findByIdWithPassword(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(
+        400,
+        "This account has already been permanently deleted",
+      );
+    }
+
+    if (!user.password) {
+      throw new ApiError(400, "Password is not available for this account");
+    }
+
+    const isPasswordValid = await comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Incorrect password");
+    }
+
+    const deletedUser = await authRepository.permanentlyDeleteAccount(userId);
+
+    if (!deletedUser) {
+      throw new ApiError(500, "Failed to permanently delete account");
+    }
+
+    return {
+      userId: deletedUser._id,
+      email: deletedUser.email,
+      isDeletedUser: deletedUser.isDeletedUser,
+      userPermanentDeletedAt: deletedUser.userPermanentDeletedAt,
+    };
+  }
 }
 
 export const authService = new AuthService();

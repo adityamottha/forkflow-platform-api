@@ -120,6 +120,30 @@ export class AuthRepository {
       },
     );
   }
+
+  // PERMANENT DELETE ACCOUNT ------------------------------
+  async permanentlyDeleteAccount(userId: string) {
+    return AuthUser.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          isDeletedUser: true,
+          userPermanentDeletedAt: new Date(),
+
+          // Make sure temporary-delete state is also cleared
+          isTemporaryDeletedUser: false,
+          userTemporaryDeletedAt: null,
+        },
+        $inc: {
+          refreshTokenVersion: 1,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  }
 }
 
 export const authRepository = new AuthRepository();
