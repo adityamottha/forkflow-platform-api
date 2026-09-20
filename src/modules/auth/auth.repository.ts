@@ -46,6 +46,15 @@ export class AuthRepository {
 
     return user;
   }
+
+  // find email with passwordj
+  async findByEmailWithPassword(email: string) {
+    const user = await AuthUser.findOne({
+      email,
+    }).select("+password");
+
+    return user;
+  }
 }
 
 export const authRepository = new AuthRepository();

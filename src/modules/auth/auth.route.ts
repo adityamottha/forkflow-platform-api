@@ -20,4 +20,10 @@ router.post(
   AsyncHandler((req, res) => authController.resendVerificationOTP(req, res)),
 );
 
+// Login
+router.post(
+  "/login",
+  AsyncHandler((req, res) => authController.login(req, res)),
+);
+
 export default router;

@@ -1,10 +1,11 @@
 import { hashPassword, comparePassword } from "../../utils/password.js";
+import { generateAccessAndRefreshToken } from "../../utils/refAccToken.js";
 
 import { authRepository } from "./auth.repository.js";
 import { otpRepository } from "../otp/otp.repository.js";
 import { otpService } from "../otp/otp.service.js";
 
-import type { RegisterInput } from "./auth.schema.js";
+import type { RegisterInput, LoginInput } from "./auth.schema.js";
 import { ApiError } from "../../utils/apiError.js";
 
 import {
@@ -202,6 +203,53 @@ export class AuthService {
       otpSent: true,
       expiresAt: otpResult.expiresAt,
       message: "Verification OTP sent successfully",
+    };
+  }
+
+  // LOGIN SERVICE ----------------------------------
+
+  async login(data: LoginInput) {
+    const email = data.email.trim().toLowerCase();
+    const user = await authRepository.findByEmailWithPassword(email);
+    if (!user) {
+      throw new ApiError(401, "Invalid email or password");
+    }
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(403, "This account is temporarily deleted");
+    }
+    if (user.accountStatus === "BLOCKED") {
+      throw new ApiError(403, "Your account has been blocked");
+    }
+    if (user.accountStatus === "SUSPENDED") {
+      throw new ApiError(403, "Your account has been suspended");
+    }
+    if (!user.isEmailVerified) {
+      throw new ApiError(403, "Please verify your email before logging in");
+    }
+    const isPasswordValid = await comparePassword(data.password, user.password);
+    if (!isPasswordValid) {
+      user.failedLoginAttempts += 1;
+      user.lastFailedLoginAt = new Date();
+      await user.save();
+      throw new ApiError(401, "Invalid email or password");
+    }
+    user.failedLoginAttempts = 0;
+    user.lastLoginAt = new Date();
+    await user.save();
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id.toString(),
+    );
+    return {
+      userId: user._id,
+      email: user.email,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      isProfileCompleted: user.isProfileCompleted,
+      accessToken,
+      refreshToken,
     };
   }
 }

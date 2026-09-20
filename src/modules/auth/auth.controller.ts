@@ -5,6 +5,7 @@ import { authService } from "./auth.service.js";
 import {
   registerSchema,
   verifyEmailSchema,
+  loginSchema,
   resendVerificationOTPSchema,
 } from "./auth.schema.js";
 
@@ -39,6 +40,17 @@ export class AuthController {
     return res
       .status(200)
       .json(new ApiResponse(200, result, "Verification OTP sent successfully"));
+  }
+
+  // LOGIN CONTROLLER ========== =============================
+  async login(req: Request, res: Response) {
+    const validatedData = loginSchema.parse(req.body);
+
+    const result = await authService.login(validatedData);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, result, "Login successful"));
   }
 }
 
