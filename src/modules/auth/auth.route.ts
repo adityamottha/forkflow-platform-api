@@ -52,4 +52,10 @@ router.post(
   AsyncHandler((req, res) => authController.verifyForgotPasswordOTP(req, res)),
 );
 
+// RESET PASSWORD
+router.post(
+  "/reset-password",
+  AsyncHandler((req, res) => authController.resetPassword(req, res)),
+);
+
 export default router;

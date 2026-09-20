@@ -9,6 +9,7 @@ import {
   loginSchema,
   resendVerificationOTPSchema,
   verifyForgotPasswordOTPSchema,
+  resetPasswordSchema,
 } from "./auth.schema.js";
 
 export class AuthController {
@@ -168,6 +169,20 @@ export class AuthController {
           "Forgot password OTP verified successfully",
         ),
       );
+  }
+
+  // RESET PASSWORD CONTROLLER ---------------------------
+  async resetPassword(req: Request, res: Response) {
+    const validatedData = resetPasswordSchema.parse(req.body);
+
+    const result = await authService.resetPassword(
+      validatedData.resetToken,
+      validatedData.password,
+    );
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, result, "Password reset successfully"));
   }
 }
 

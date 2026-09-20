@@ -55,6 +55,26 @@ export class AuthRepository {
 
     return user;
   }
+
+  // update password
+  async updatePassword(userId: string, hashedPassword: string) {
+    return AuthUser.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          password: hashedPassword,
+          passwordChangedAt: new Date(),
+        },
+        $inc: {
+          refreshTokenVersion: 1,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  }
 }
 
 export const authRepository = new AuthRepository();

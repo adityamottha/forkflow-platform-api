@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import bcrypt from "bcrypt";
+import { generatePasswordResetToken } from "../../utils/passwordResetToken.js";
 
 import { OTPModel } from "../otp/otp.model.js";
 import { OTPPurpose, OTPType } from "../otp/otp.enum.constants.js";
@@ -159,7 +160,6 @@ export class OTPService {
       );
     }
 
-    // Check if OTP is blocked
     if (otpDocument.blockedUntil && otpDocument.blockedUntil > new Date()) {
       const remainingMinutes = Math.ceil(
         (otpDocument.blockedUntil.getTime() - Date.now()) / (1000 * 60),
@@ -171,15 +171,12 @@ export class OTPService {
       );
     }
 
-    // Check OTP expiry
     if (otpDocument.expiresAt < new Date()) {
       throw new ApiError(400, "OTP has expired. Please request a new OTP");
     }
 
-    // Compare entered OTP with hashed OTP
     const isValidOTP = await comparePassword(otp, otpDocument.otpHash);
 
-    // Invalid OTP
     if (!isValidOTP) {
       const attempts = otpDocument.attempts + 1;
 
@@ -211,14 +208,18 @@ export class OTPService {
       );
     }
 
-    // OTP is valid
+    // Mark OTP as verified
     await otpRepository.updateOTP(otpDocument._id.toString(), {
       verified: true,
     });
 
+    // Generate short-lived password reset token
+    const resetToken = generatePasswordResetToken(userId);
+
     return {
       verified: true,
       email,
+      resetToken,
       message: "OTP verified successfully",
     };
   }

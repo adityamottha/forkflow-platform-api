@@ -5,6 +5,7 @@ import type { IRefreshTokenPayload } from "./auth.types.js";
 import { authRepository } from "./auth.repository.js";
 import { otpRepository } from "../otp/otp.repository.js";
 import { otpService } from "../otp/otp.service.js";
+import { verifyPasswordResetToken } from "../../utils/passwordResetToken.js";
 
 import type { RegisterInput, LoginInput } from "./auth.schema.js";
 import { ApiError } from "../../utils/apiError.js";
@@ -374,7 +375,44 @@ export class AuthService {
       userId: user._id,
       email: user.email,
       verified: result.verified,
-      message: "Forgot password OTP verified successfully",
+      resetToken: result.resetToken,
+      message: "OTP verified successfully",
+    };
+  }
+
+  // RESET PASSWORD -----------------------------
+  async resetPassword(resetToken: string, password: string) {
+    const decodedToken = verifyPasswordResetToken(resetToken);
+
+    const user = await authRepository.findById(decodedToken.userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(403, "This account is temporarily deleted");
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    const updatedUser = await authRepository.updatePassword(
+      user._id.toString(),
+      hashedPassword,
+    );
+
+    if (!updatedUser) {
+      throw new ApiError(500, "Failed to reset password");
+    }
+
+    return {
+      userId: updatedUser._id,
+      email: updatedUser.email,
+      message: "Password reset successfully",
     };
   }
 }

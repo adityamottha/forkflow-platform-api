@@ -80,3 +80,8 @@ export interface IRefreshTokenPayload extends JwtPayload {
   userId: string;
   tokenVersion: number;
 }
+
+export interface IPasswordResetTokenPayload extends JwtPayload {
+  userId: string;
+  purpose: "PASSWORD_RESET";
+}

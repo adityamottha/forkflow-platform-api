@@ -54,15 +54,19 @@ export const resendForgotPasswordOTPSchema = z.object({
   email: z.string().trim().email("Invalid email address").toLowerCase(),
 });
 
+// forgot password verify email
+export const verifyForgotPasswordOTPSchema = z.object({
+  email: z.string().trim().email("Invalid email address").toLowerCase(),
+
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "OTP must be 6 digits"),
+});
 // RESET PASSWORD ------------------------------------------
 export const resetPasswordSchema = z
   .object({
-    email: z.string().trim().email("Invalid email address").toLowerCase(),
-
-    otp: z
-      .string()
-      .trim()
-      .regex(/^\d{6}$/, "OTP must be 6 digits"),
+    resetToken: z.string().min(1, "Reset token is required"),
 
     password: z
       .string()
@@ -78,16 +82,6 @@ export const resetPasswordSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
-
-// forgot password verify email
-export const verifyForgotPasswordOTPSchema = z.object({
-  email: z.string().trim().email("Invalid email address").toLowerCase(),
-
-  otp: z
-    .string()
-    .trim()
-    .regex(/^\d{6}$/, "OTP must be 6 digits"),
-});
 
 // TYPES -----------------
 
