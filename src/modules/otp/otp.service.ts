@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { OTPModel } from "../otp/otp.model.js";
 import { OTPPurpose, OTPType } from "../otp/otp.enum.constants.js";
 import { authNotification } from "../notification/auth.notification.js";
-
+import { otpRepository } from "./otp.repository.js";
 import { ApiError } from "../../utils/apiError.js";
 import {
   OTP_LENGTH,
@@ -71,6 +71,64 @@ export class OTPService {
 
     // Send OTP
     await authNotification.sendRegistrationOTP({
+      email,
+      otp,
+      expiresInMinutes: OTP_EXPIRY_MINUTES,
+    });
+
+    return {
+      otpId: otpDocument._id,
+      expiresAt,
+    };
+  }
+
+  // FORGOT PASSWORD OTP -------------------------------
+  async createForgotPasswordOTP(userId: string, email: string) {
+    const existingOTP = await otpRepository.findLatestOTP(
+      userId,
+      email,
+      OTPType.EMAIL_VERIFICATION,
+      OTPPurpose.FORGOT_PASSWORD,
+    );
+
+    if (existingOTP) {
+      const elapsedSeconds = Math.floor(
+        (Date.now() - existingOTP.createdAt.getTime()) / 1000,
+      );
+
+      if (elapsedSeconds < OTP_RESEND_COOLDOWN_SECONDS) {
+        const remainingSeconds = OTP_RESEND_COOLDOWN_SECONDS - elapsedSeconds;
+
+        throw new ApiError(
+          429,
+          `Please wait ${remainingSeconds} seconds before requesting another OTP`,
+        );
+      }
+
+      // Invalidate previous OTP
+      existingOTP.verified = true;
+      await existingOTP.save();
+    }
+
+    const otp = this.generateOTP();
+
+    const otpHash = await bcrypt.hash(otp, 10);
+
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    const otpDocument = await OTPModel.create({
+      userId,
+      email,
+      otpHash,
+      type: OTPType.EMAIL_VERIFICATION,
+      purpose: OTPPurpose.FORGOT_PASSWORD,
+      expiresAt,
+      attempts: 0,
+      verified: false,
+      lastSentAt: new Date(),
+    });
+
+    await authNotification.sendForgotPasswordOTP({
       email,
       otp,
       expiresInMinutes: OTP_EXPIRY_MINUTES,

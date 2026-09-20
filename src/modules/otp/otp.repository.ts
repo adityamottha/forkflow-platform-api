@@ -31,6 +31,22 @@ export class OTPRepository {
 
     return otp;
   }
+
+  // FORGOT PASSWORD
+  async findLatestOTP(
+    userId: string,
+    email: string,
+    type: OTPType,
+    purpose: OTPPurpose,
+  ) {
+    return OTPModel.findOne({
+      userId,
+      email,
+      type,
+      purpose,
+      verified: false,
+    }).sort({ createdAt: -1 });
+  }
 }
 
 export const otpRepository = new OTPRepository();

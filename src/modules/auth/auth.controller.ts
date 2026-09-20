@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-
+import { forgotPasswordSchema } from "./auth.schema.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
 import { authService } from "./auth.service.js";
@@ -8,6 +8,7 @@ import {
   verifyEmailSchema,
   loginSchema,
   resendVerificationOTPSchema,
+  type ForgotPasswordInput,
 } from "./auth.schema.js";
 
 export class AuthController {
@@ -134,6 +135,19 @@ export class AuthController {
       .clearCookie("accessToken", options)
       .clearCookie("refreshToken", options)
       .json(new ApiResponse(200, null, "Logged out successfully"));
+  }
+
+  // FORGOT PASSWORD CONTROLLER ----------------------
+  async forgotPassword(req: Request, res: Response) {
+    const validatedData = forgotPasswordSchema.parse(req.body);
+
+    const result = await authService.forgotPassword(validatedData.email);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, result, "Password reset OTP sent successfully"),
+      );
   }
 }
 

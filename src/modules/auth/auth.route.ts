@@ -39,4 +39,10 @@ router.post(
   verifyJWT,
   AsyncHandler((req, res) => authController.logout(req, res)),
 );
+
+// Forgot password
+router.post(
+  "/forgot-password",
+  AsyncHandler((req, res) => authController.forgotPassword(req, res)),
+);
 export default router;

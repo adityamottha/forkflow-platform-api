@@ -313,6 +313,38 @@ export class AuthService {
       message: "Logged out successfully",
     };
   }
+
+  // FORGOT PASSWORD SERVICE _-----------------------------------------
+
+  async forgotPassword(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await authRepository.findByEmail(normalizedEmail);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(403, "This account is temporarily deleted");
+    }
+
+    const otpResult = await otpService.createForgotPasswordOTP(
+      user._id.toString(),
+      user.email,
+    );
+
+    return {
+      email: user.email,
+      otpSent: true,
+      expiresAt: otpResult.expiresAt,
+      message: "Password reset OTP sent successfully",
+    };
+  }
 }
 
 export const authService = new AuthService();
