@@ -11,5 +11,6 @@ export interface IOTP extends Document {
   attempts: number;
   verified: boolean;
   createdAt: Date;
+  lastSentAt: Date;
   updatedAt: Date;
 }
