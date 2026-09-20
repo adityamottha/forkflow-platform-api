@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import { hashPassword } from "../../utils/password.js";
 
 import { authRepository } from "./auth.repository.js";
 import { otpService } from "../otp/otp.service.js";
@@ -36,7 +36,7 @@ export class AuthService {
     }
 
     // 3. Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await hashPassword(password);
 
     // 4. Create new user
     const user = await authRepository.createUser({
