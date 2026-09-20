@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { authController } from "./auth.controller.js";
 import { AsyncHandler } from "../../utils/ayncHandler.js";
+import { verifyJWT } from "../../middleware/verifyJWT.middleware.js";
 
 const router: Router = Router();
 
@@ -32,4 +33,10 @@ router.post(
   AsyncHandler((req, res) => authController.refreshAccessToken(req, res)),
 );
 
+// Logout
+router.post(
+  "/logout",
+  verifyJWT,
+  AsyncHandler((req, res) => authController.logout(req, res)),
+);
 export default router;

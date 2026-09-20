@@ -111,6 +111,30 @@ export class AuthController {
         ),
       );
   }
+
+  // LOGOUT CONTROLLER ----------------------------------
+
+  async logout(req: Request, res: Response) {
+    const userId = req.user?._id?.toString();
+
+    if (!userId) {
+      throw new ApiError(401, "Unauthorized request");
+    }
+
+    await authService.logout(userId);
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new ApiResponse(200, null, "Logged out successfully"));
+  }
 }
 
 export const authController = new AuthController();

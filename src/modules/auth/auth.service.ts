@@ -294,6 +294,25 @@ export class AuthService {
     );
     return { accessToken, refreshToken };
   }
+
+  // LOGOUT SERVICE --------------------------------------
+  async logout(userId: string) {
+    const user = await authRepository.findById(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    // Increment token version to invalidate existing refresh tokens
+    user.refreshTokenVersion += 1;
+    user.lastLogoutAt = new Date();
+
+    await user.save();
+
+    return {
+      message: "Logged out successfully",
+    };
+  }
 }
 
 export const authService = new AuthService();
