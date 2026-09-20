@@ -18,7 +18,11 @@ app.use(express.urlencoded({ limit: "16kb", extended: true }));
 app.use(express.static("public/temp"));
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
+// AUTH ROUTES ===========================
+import auth from "./modules/auth/auth.route.js";
+app.use("/api/v1/auth", auth);
+
+// ERROR-MIDDLEWARE======================================
+import errorMiddleware from "./middleware/error.middleware.js";
+app.use(errorMiddleware);
 export default app;
