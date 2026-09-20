@@ -10,7 +10,10 @@ import {
   OTP_LENGTH,
   OTP_EXPIRY_MINUTES,
   OTP_RESEND_COOLDOWN_SECONDS,
+  MAX_OTP_ATTEMPTS,
+  OTP_BLOCK_DURATION_HOURS,
 } from "../otp/otp.enum.constants.js";
+import { comparePassword } from "../../utils/password.js";
 
 export class OTPService {
   private generateOTP(): string {
@@ -137,6 +140,86 @@ export class OTPService {
     return {
       otpId: otpDocument._id,
       expiresAt,
+    };
+  }
+
+  // VERIFY FORGOT PASSWORD OTP ---------------------------------------
+  async verifyForgotPasswordOTP(userId: string, email: string, otp: string) {
+    const otpDocument = await otpRepository.findLatestOTP(
+      userId,
+      email,
+      OTPType.EMAIL_VERIFICATION,
+      OTPPurpose.FORGOT_PASSWORD,
+    );
+
+    if (!otpDocument) {
+      throw new ApiError(
+        400,
+        "Verification OTP not found. Please request a new OTP",
+      );
+    }
+
+    // Check if OTP is blocked
+    if (otpDocument.blockedUntil && otpDocument.blockedUntil > new Date()) {
+      const remainingMinutes = Math.ceil(
+        (otpDocument.blockedUntil.getTime() - Date.now()) / (1000 * 60),
+      );
+
+      throw new ApiError(
+        429,
+        `Too many attempts. Try again after ${remainingMinutes} minutes`,
+      );
+    }
+
+    // Check OTP expiry
+    if (otpDocument.expiresAt < new Date()) {
+      throw new ApiError(400, "OTP has expired. Please request a new OTP");
+    }
+
+    // Compare entered OTP with hashed OTP
+    const isValidOTP = await comparePassword(otp, otpDocument.otpHash);
+
+    // Invalid OTP
+    if (!isValidOTP) {
+      const attempts = otpDocument.attempts + 1;
+
+      let blockedUntil: Date | null = null;
+
+      if (attempts >= MAX_OTP_ATTEMPTS) {
+        blockedUntil = new Date(
+          Date.now() + OTP_BLOCK_DURATION_HOURS * 60 * 60 * 1000,
+        );
+      }
+
+      await otpRepository.updateOTP(otpDocument._id.toString(), {
+        attempts,
+        blockedUntil,
+      });
+
+      if (attempts >= MAX_OTP_ATTEMPTS) {
+        throw new ApiError(
+          429,
+          "Maximum OTP attempts reached. Try again after 1 hour",
+        );
+      }
+
+      const remainingAttempts = MAX_OTP_ATTEMPTS - attempts;
+
+      throw new ApiError(
+        400,
+        `Invalid OTP. ${remainingAttempts} attempts remaining`,
+      );
+    }
+
+    // OTP is valid
+    await otpRepository.updateOTP(otpDocument._id.toString(), {
+      verified: true,
+    });
+
+    return {
+      verified: true,
+      email,
+      message: "OTP verified successfully",
     };
   }
 }

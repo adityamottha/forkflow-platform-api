@@ -8,7 +8,7 @@ import {
   verifyEmailSchema,
   loginSchema,
   resendVerificationOTPSchema,
-  type ForgotPasswordInput,
+  verifyForgotPasswordOTPSchema,
 } from "./auth.schema.js";
 
 export class AuthController {
@@ -147,6 +147,26 @@ export class AuthController {
       .status(200)
       .json(
         new ApiResponse(200, result, "Password reset OTP sent successfully"),
+      );
+  }
+
+  // VERIFY FORGOT PASSWORD OTP ---------------------------
+  async verifyForgotPasswordOTP(req: Request, res: Response) {
+    const validatedData = verifyForgotPasswordOTPSchema.parse(req.body);
+
+    const result = await authService.verifyForgotPasswordOTP(
+      validatedData.email,
+      validatedData.otp,
+    );
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          result,
+          "Forgot password OTP verified successfully",
+        ),
       );
   }
 }

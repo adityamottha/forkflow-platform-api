@@ -345,6 +345,38 @@ export class AuthService {
       message: "Password reset OTP sent successfully",
     };
   }
+
+  // VERIFY FORGOT PASSWORD OTP ------------------------------------
+  async verifyForgotPasswordOTP(email: string, otp: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await authRepository.findByEmail(normalizedEmail);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "This account has been permanently deleted");
+    }
+
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(403, "This account is temporarily deleted");
+    }
+
+    const result = await otpService.verifyForgotPasswordOTP(
+      user._id.toString(),
+      normalizedEmail,
+      otp,
+    );
+
+    return {
+      userId: user._id,
+      email: user.email,
+      verified: result.verified,
+      message: "Forgot password OTP verified successfully",
+    };
+  }
 }
 
 export const authService = new AuthService();

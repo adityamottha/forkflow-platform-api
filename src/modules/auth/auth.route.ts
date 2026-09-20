@@ -45,4 +45,11 @@ router.post(
   "/forgot-password",
   AsyncHandler((req, res) => authController.forgotPassword(req, res)),
 );
+
+// VERIFY FORGOT PASSWORD OTP
+router.post(
+  "/verify-forgot-password-otp",
+  AsyncHandler((req, res) => authController.verifyForgotPasswordOTP(req, res)),
+);
+
 export default router;
