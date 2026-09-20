@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import "./config.env.js";
+import { DB_NAME } from "../db.constants.js";
 
 export const connectDB = async (): Promise<void> => {
   try {
@@ -9,7 +10,7 @@ export const connectDB = async (): Promise<void> => {
       throw new Error("MONGODB_URI is not defined");
     }
 
-    const connectionInstance = await mongoose.connect(mongoUri);
+    const connectionInstance = await mongoose.connect(`${mongoUri}/${DB_NAME}`);
 
     console.log(
       "DATABASE CONNECTED SUCCESSFULLY!",
