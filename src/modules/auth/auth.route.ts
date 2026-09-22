@@ -3,6 +3,7 @@ import { Router } from "express";
 import { authController } from "./auth.controller.js";
 import { AsyncHandler } from "../../utils/ayncHandler.js";
 import { verifyJWT } from "../../middleware/verifyJWT.middleware.js";
+import emailChangeRoutes from "./email-change/email-change.routes.js";
 
 const router: Router = Router();
 
@@ -84,4 +85,10 @@ router.delete(
   verifyJWT,
   AsyncHandler((req, res) => authController.permanentlyDeleteAccount(req, res)),
 );
+
+// MOUNT EMAIL ROUTES
+// other auth routes...
+
+router.use("/change-email", emailChangeRoutes);
+
 export default router;
