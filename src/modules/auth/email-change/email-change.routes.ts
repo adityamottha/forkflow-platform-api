@@ -23,4 +23,12 @@ router.post(
   ),
 );
 
+// verify-new-email
+router.post(
+  "/verify-new",
+  verifyJWT,
+  AsyncHandler(
+    emailChangeController.verifyNewEmail.bind(emailChangeController),
+  ),
+);
 export default router;

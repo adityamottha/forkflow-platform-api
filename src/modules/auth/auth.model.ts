@@ -38,6 +38,10 @@ const authUserSchema = new Schema<
     emailChangedAt: {
       type: Date,
     },
+    emailHistory: {
+      type: [String],
+      default: [],
+    },
 
     //authentication
     password: {

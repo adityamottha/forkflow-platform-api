@@ -15,6 +15,7 @@ export interface IAuthUser extends Document {
   isEmailVerified: boolean;
   emailVerifiedAt?: Date;
   emailChangedAt?: Date;
+  emailHistory: string[];
 
   // authentication
   password: string;

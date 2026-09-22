@@ -193,6 +193,128 @@ export class EmailChangeService {
       expiresAt: updatedRequest.expiresAt,
     };
   }
+
+  // VERIFY-NEW-EMAIL ------------------
+  async verifyNewEmail(userId: string, otp: string) {
+    const user = await authRepository.findById(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.isDeletedUser) {
+      throw new ApiError(403, "Deleted account cannot change email");
+    }
+
+    if (user.isTemporaryDeletedUser) {
+      throw new ApiError(
+        403,
+        "Temporarily deleted account cannot change email",
+      );
+    }
+
+    const emailChangeRequest =
+      await emailChangeRepository.findPendingNewEmailRequest(userId);
+
+    if (!emailChangeRequest) {
+      throw new ApiError(400, "No active email change request found");
+    }
+
+    if (!emailChangeRequest.oldEmailVerified) {
+      throw new ApiError(400, "Current email must be verified first");
+    }
+
+    const existingUser = await authRepository.findByEmail(
+      emailChangeRequest.newEmail,
+    );
+
+    if (existingUser && existingUser._id.toString() !== userId) {
+      throw new ApiError(409, "This email address is already registered");
+    }
+
+    const otpRecord = await otpRepository.findLatestOTP(
+      userId,
+      emailChangeRequest.newEmail,
+      OTPType.EMAIL_VERIFICATION,
+      OTPPurpose.CHANGE_EMAIL,
+    );
+
+    if (!otpRecord) {
+      throw new ApiError(400, "Verification OTP not found or expired");
+    }
+
+    if (otpRecord.blockedUntil && otpRecord.blockedUntil > new Date()) {
+      throw new ApiError(
+        429,
+        "Too many incorrect attempts. Please try again later",
+      );
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      throw new ApiError(400, "OTP has expired");
+    }
+
+    const isValidOTP = await comparePassword(otp, otpRecord.otpHash);
+
+    if (!isValidOTP) {
+      const attempts = otpRecord.attempts + 1;
+
+      if (attempts >= MAX_OTP_ATTEMPTS) {
+        await otpRepository.updateOTP(otpRecord._id.toString(), {
+          attempts,
+          blockedUntil: new Date(
+            Date.now() + OTP_BLOCK_DURATION_HOURS * 60 * 60 * 1000,
+          ),
+        });
+
+        throw new ApiError(
+          429,
+          "Maximum OTP attempts reached. Please try again later",
+        );
+      }
+
+      await otpRepository.updateOTP(otpRecord._id.toString(), {
+        attempts,
+      });
+
+      throw new ApiError(
+        400,
+        `Invalid OTP. ${MAX_OTP_ATTEMPTS - attempts} attempts remaining`,
+      );
+    }
+
+    // Mark OTP as verified
+    await otpRepository.updateOTP(otpRecord._id.toString(), {
+      verified: true,
+    });
+
+    // Change email and store old email in emailHistory
+    const updatedUser = await authRepository.changeEmail(
+      userId,
+      emailChangeRequest.oldEmail,
+      emailChangeRequest.newEmail,
+    );
+
+    if (!updatedUser) {
+      throw new ApiError(500, "Failed to change email");
+    }
+
+    // Mark email change request as completed
+    const updatedRequest = await emailChangeRepository.markNewEmailVerified(
+      emailChangeRequest._id.toString(),
+    );
+
+    if (!updatedRequest) {
+      throw new ApiError(500, "Failed to update email change request");
+    }
+
+    return {
+      email: updatedUser.email,
+      oldEmail: emailChangeRequest.oldEmail,
+      emailChanged: true,
+      status: EmailChangeStatus.COMPLETED,
+    };
+  }
 }
 
 export const emailChangeService = new EmailChangeService();

@@ -144,6 +144,31 @@ export class AuthRepository {
       },
     );
   }
+
+  // CHANGE-EMAIL
+  async changeEmail(userId: string, oldEmail: string, newEmail: string) {
+    return AuthUser.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          email: newEmail,
+          isEmailVerified: true,
+          emailVerifiedAt: new Date(),
+          emailChangedAt: new Date(),
+        },
+        $push: {
+          emailHistory: oldEmail,
+        },
+        $inc: {
+          refreshTokenVersion: 1,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  }
 }
 
 export const authRepository = new AuthRepository();
