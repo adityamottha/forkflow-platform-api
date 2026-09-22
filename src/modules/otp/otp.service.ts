@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import bcrypt from "bcrypt";
 import { generatePasswordResetToken } from "../../utils/passwordResetToken.js";
+import { randomInt } from "crypto";
+import { hashPassword } from "../../utils/password.js";
 
 import { OTPModel } from "../otp/otp.model.js";
 import { OTPPurpose, OTPType } from "../otp/otp.enum.constants.js";
@@ -15,7 +17,7 @@ import {
   OTP_BLOCK_DURATION_HOURS,
 } from "../otp/otp.enum.constants.js";
 import { comparePassword } from "../../utils/password.js";
-
+import type { CreateAndSendOTPInput } from "./otp.types.js";
 export class OTPService {
   private generateOTP(): string {
     return crypto.randomInt(0, 1_000_000).toString().padStart(OTP_LENGTH, "0");
@@ -221,6 +223,49 @@ export class OTPService {
       email,
       resetToken,
       message: "OTP verified successfully",
+    };
+  }
+
+  // CREATE AND SEND OTP  --------------------------
+
+  async createAndSendOTP({
+    userId,
+    email,
+    type,
+    purpose,
+  }: CreateAndSendOTPInput) {
+    // Generate OTP
+    const otp = randomInt(0, 10 ** OTP_LENGTH)
+      .toString()
+      .padStart(OTP_LENGTH, "0");
+
+    // Hash OTP before storing it
+    const otpHash = await hashPassword(otp);
+
+    // OTP expiry
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    // Save OTP hash
+    const otpRecord = await otpRepository.createOTP({
+      userId,
+      email,
+      otpHash,
+      type,
+      purpose,
+      expiresAt,
+    });
+
+    // Send plain OTP to user's email
+    await authNotification.sendRegistrationOTP({
+      email,
+      otp,
+      expiresInMinutes: OTP_EXPIRY_MINUTES,
+    });
+
+    return {
+      otpId: otpRecord._id,
+      email,
+      expiresAt,
     };
   }
 }

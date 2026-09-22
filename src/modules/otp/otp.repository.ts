@@ -47,6 +47,18 @@ export class OTPRepository {
       verified: false,
     }).sort({ createdAt: -1 });
   }
+
+  // CREATE AND SEND OTP
+  async createOTP(data: {
+    userId: string;
+    email: string;
+    otpHash: string;
+    type: OTPType;
+    purpose: OTPPurpose;
+    expiresAt: Date;
+  }) {
+    return OTPModel.create(data);
+  }
 }
 
 export const otpRepository = new OTPRepository();

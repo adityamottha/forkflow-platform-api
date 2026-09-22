@@ -26,3 +26,11 @@ export interface IOTP extends Document {
 
   updatedAt: Date;
 }
+
+// CREATE AND SEND OTP -------
+export interface CreateAndSendOTPInput {
+  userId: string;
+  email: string;
+  type: OTPType;
+  purpose: OTPPurpose;
+}
