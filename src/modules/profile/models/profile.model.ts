@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import type { IProfile } from "../types/profile.types.js";
+import { addressSchema } from "./address.model.js";
 
 const profileSchema = new Schema<IProfile>(
   {
@@ -40,6 +41,10 @@ const profileSchema = new Schema<IProfile>(
       default: null,
     },
 
+    addresses: {
+      type: [addressSchema],
+      default: [],
+    },
     dateOfBirth: {
       type: Date,
       default: null,

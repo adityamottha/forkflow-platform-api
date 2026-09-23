@@ -1,4 +1,5 @@
 import type { Types } from "mongoose";
+import type { IAddress } from "./address.types.js";
 
 export interface IProfile {
   userId: Types.ObjectId;
@@ -10,6 +11,7 @@ export interface IProfile {
 
   phoneNumber?: string;
   countryCode?: string;
+  addresses: IAddress[];
 
   dateOfBirth?: Date;
   gender?: "MALE" | "FEMALE" | "OTHER";
