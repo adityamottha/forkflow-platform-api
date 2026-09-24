@@ -97,6 +97,23 @@ export class ProfileRepository {
       },
     );
   }
+
+  // complete profile
+  async completeProfile(userId: string, updateData: Partial<IProfile>) {
+    return Profile.findOneAndUpdate(
+      { userId },
+      {
+        $set: {
+          ...updateData,
+          isProfileCompleted: true,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  }
 }
 
 export const profileRepository = new ProfileRepository();
