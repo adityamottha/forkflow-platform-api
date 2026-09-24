@@ -1,4 +1,8 @@
+import { Types } from "mongoose";
+
 export interface IAddress {
+  _id?: Types.ObjectId;
+
   label: "HOME" | "WORK" | "OTHER";
 
   houseNumber?: string;
