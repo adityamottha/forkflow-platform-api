@@ -22,6 +22,10 @@ app.use(cookieParser());
 import auth from "./modules/auth/auth.route.js";
 app.use("/api/v1/auth", auth);
 
+// PROFILE ROUTES ======================
+import profileRoutes from "./modules/profile/profile.routes.js";
+app.use("/api/v1/profile", profileRoutes);
+
 // ERROR-MIDDLEWARE======================================
 import errorMiddleware from "./middleware/error.middleware.js";
 app.use(errorMiddleware);
