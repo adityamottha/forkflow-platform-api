@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import bcrypt from "bcrypt";
 import { generatePasswordResetToken } from "../../utils/passwordResetToken.js";
 import { randomInt } from "crypto";
-import { hashPassword } from "../../utils/password.js";
+import { hashOTP, compareOTP } from "../../utils/otp.js";
 
 import { OTPModel } from "../otp/otp.model.js";
 import { OTPPurpose, OTPType } from "../otp/otp.enum.constants.js";
@@ -16,7 +16,6 @@ import {
   MAX_OTP_ATTEMPTS,
   OTP_BLOCK_DURATION_HOURS,
 } from "../otp/otp.enum.constants.js";
-import { comparePassword } from "../../utils/password.js";
 import type { CreateAndSendOTPInput } from "./otp.types.js";
 export class OTPService {
   private generateOTP(): string {
@@ -177,7 +176,7 @@ export class OTPService {
       throw new ApiError(400, "OTP has expired. Please request a new OTP");
     }
 
-    const isValidOTP = await comparePassword(otp, otpDocument.otpHash);
+    const isValidOTP = await compareOTP(otp, otpDocument.otpHash);
 
     if (!isValidOTP) {
       const attempts = otpDocument.attempts + 1;
@@ -240,7 +239,7 @@ export class OTPService {
       .padStart(OTP_LENGTH, "0");
 
     // Hash OTP before storing it
-    const otpHash = await hashPassword(otp);
+    const otpHash = await hashOTP(otp);
 
     // OTP expiry
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);

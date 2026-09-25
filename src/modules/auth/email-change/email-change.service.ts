@@ -1,7 +1,7 @@
 import { ApiError } from "../../../utils/apiError.js";
 import { authRepository } from "../auth.repository.js";
 import { emailChangeRepository } from "./email-change.repository.js";
-import { otpService, OTPService } from "../../otp/otp.service.js";
+import { otpService } from "../../otp/otp.service.js";
 import { EmailChangeStatus } from "./email-change.constants.js";
 import type { RequestEmailChangeInput } from "./email-change.schema.js";
 import {
@@ -11,7 +11,7 @@ import {
   OTP_BLOCK_DURATION_HOURS,
 } from "../../otp/otp.enum.constants.js";
 import { otpRepository } from "../../otp/otp.repository.js";
-import { comparePassword } from "../../../utils/password.js";
+import { compareOTP } from "../../../utils/otp.js";
 
 export class EmailChangeService {
   async requestEmailChange(userId: string, data: RequestEmailChangeInput) {
@@ -137,7 +137,7 @@ export class EmailChangeService {
       throw new ApiError(400, "OTP has expired");
     }
 
-    const isValidOTP = await comparePassword(otp, otpRecord.otpHash);
+    const isValidOTP = await compareOTP(otp, otpRecord.otpHash);
 
     if (!isValidOTP) {
       const attempts = otpRecord.attempts + 1;
@@ -254,7 +254,7 @@ export class EmailChangeService {
       throw new ApiError(400, "OTP has expired");
     }
 
-    const isValidOTP = await comparePassword(otp, otpRecord.otpHash);
+    const isValidOTP = await compareOTP(otp, otpRecord.otpHash);
 
     if (!isValidOTP) {
       const attempts = otpRecord.attempts + 1;
