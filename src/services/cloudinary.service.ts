@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import fsSync from "fs";
-import { cloudinary } from "../../config/cloudinary.config.js";
-import { ApiError } from "../../utils/apiError.js";
+import { cloudinary } from "../config/cloudinary.config.js";
+import { ApiError } from "../utils/apiError.js";
 
 class CloudinaryService {
   async uploadOnCloudinary(localFilePath: string) {
