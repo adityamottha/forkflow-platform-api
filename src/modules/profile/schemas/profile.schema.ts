@@ -40,32 +40,38 @@ export const createProfileSchema = z.object({
     .optional(),
 });
 
-export const updateProfileSchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(2, "First name must be at least 2 characters")
-    .max(50, "First name cannot exceed 50 characters"),
+export const updateProfileSchema = z
+  .object({
+    firstName: z
+      .string()
+      .trim()
+      .min(2, "First name must be at least 2 characters")
+      .max(50, "First name cannot exceed 50 characters")
+      .optional(),
 
-  lastName: z
-    .string()
-    .trim()
-    .max(50, "Last name cannot exceed 50 characters")
-    .optional(),
+    lastName: z
+      .string()
+      .trim()
+      .max(50, "Last name cannot exceed 50 characters")
+      .optional(),
 
-  dateOfBirth: z
-    .string()
-    .datetime({ message: "Invalid date of birth" })
-    .optional(),
+    dateOfBirth: z
+      .string()
+      .datetime({ message: "Invalid date of birth" })
+      .optional(),
 
-  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
+    gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
 
-  bio: z
-    .string()
-    .trim()
-    .max(500, "Bio cannot exceed 500 characters")
-    .optional(),
-});
+    bio: z
+      .string()
+      .trim()
+      .max(500, "Bio cannot exceed 500 characters")
+      .optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field is required for profile update",
+  });
 
 export const completeProfileSchema = z.object({
   firstName: z

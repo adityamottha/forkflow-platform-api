@@ -5,6 +5,8 @@ import "./config/config.env.js";
 import app from "./app.js";
 import { connectDB } from "./config/config.db.js";
 
+console.log("DB_URI : ", process.env.MONGODB_URI);
+
 const PORT = process.env.PORT;
 
 const server = () => {
