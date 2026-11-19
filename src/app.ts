@@ -23,8 +23,12 @@ import auth from "./modules/auth/auth.route.js";
 app.use("/api/v1/auth", auth);
 
 // PROFILE ROUTES ======================
-import profileRoutes from "./modules/profile/profile.routes.js";
+import profileRoutes from "./modules/profile/routes/profile.routes.js";
 app.use("/api/v1/profile", profileRoutes);
+
+// ADDRESS ROUTES ========================
+import addressRoutes from "./modules/profile/routes/address.routes.js";
+app.use("/api/v1/profile/addresses", addressRoutes);
 
 // ERROR-MIDDLEWARE======================================
 import errorMiddleware from "./middleware/error.middleware.js";

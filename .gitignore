@@ -6,3 +6,9 @@ dist/
 infra.service.ts
 test.js
 .gitignore
+
+# Temporary files
+public/temp/
+
+# Database backups
+*.sql

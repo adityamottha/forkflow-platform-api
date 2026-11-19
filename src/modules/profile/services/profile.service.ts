@@ -99,6 +99,21 @@ export class ProfileService {
 
     return updatedProfile;
   }
+
+  // GET PROFILE SERVICE -------------------
+  async getProfile(userId: string) {
+    if (!userId) {
+      throw new ApiError(400, "User ID is required");
+    }
+
+    const profile = await profileRepository.findByUserId(userId);
+
+    if (!profile) {
+      throw new ApiError(404, "Profile not found");
+    }
+
+    return profile;
+  }
 }
 
 export const profileService = new ProfileService();

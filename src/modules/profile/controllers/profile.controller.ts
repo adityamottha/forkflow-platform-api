@@ -41,6 +41,17 @@ export class ProfileController {
       .status(201)
       .json(new ApiResponse(201, result, "Profile Updated!"));
   }
+
+  // GET PROFILE CONTROLLER --------------
+  async getProfile(req: Request, res: Response) {
+    const userId = req.user?.userId;
+
+    const profile = await profileService.getProfile(userId || "");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, profile, "Profile fetched successfully"));
+  }
 }
 
 export const profileController = new ProfileController();

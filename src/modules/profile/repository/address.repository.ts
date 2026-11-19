@@ -2,6 +2,7 @@ import { Profile } from "../models/profile.model.js";
 import type { IAddress } from "../types/address.types.js";
 
 export class AddressRepository {
+  // ADD ADDRESS
   async addAddress(userId: string, addressData: IAddress) {
     return Profile.findOneAndUpdate(
       { userId },
@@ -17,12 +18,14 @@ export class AddressRepository {
     );
   }
 
+  // GET ALL ADDRESSES
   async findAddressesByUserId(userId: string) {
     const profile = await Profile.findOne({ userId }, { addresses: 1 });
 
     return profile?.addresses ?? [];
   }
 
+  // GET ADDRESS BY ID
   async findAddressById(userId: string, addressId: string) {
     const profile = await Profile.findOne(
       {
@@ -31,9 +34,7 @@ export class AddressRepository {
       },
       {
         addresses: {
-          $elemMatch: {
-            _id: addressId,
-          },
+          $elemMatch: { _id: addressId },
         },
       },
     );
@@ -41,6 +42,7 @@ export class AddressRepository {
     return profile?.addresses?.[0] ?? null;
   }
 
+  // UPDATE ADDRESS
   async updateAddress(
     userId: string,
     addressId: string,
@@ -68,11 +70,12 @@ export class AddressRepository {
 
     return (
       profile?.addresses.find(
-        (address) => address._id?.toString() === addressId,
+        (address) => address.userId?.toString() === addressId,
       ) ?? null
     );
   }
 
+  // DELETE ADDRESS
   async deleteAddress(userId: string, addressId: string) {
     return Profile.findOneAndUpdate(
       {
@@ -81,9 +84,7 @@ export class AddressRepository {
       },
       {
         $pull: {
-          addresses: {
-            _id: addressId,
-          },
+          addresses: { _id: addressId },
         },
       },
       {
@@ -92,8 +93,9 @@ export class AddressRepository {
     );
   }
 
+  // SET DEFAULT ADDRESS
   async setDefaultAddress(userId: string, addressId: string) {
-    // First remove default from all addresses
+    // Reset all addresses
     await Profile.updateOne(
       { userId },
       {
@@ -103,7 +105,7 @@ export class AddressRepository {
       },
     );
 
-    // Then set the selected address as default
+    // Set selected address as default
     const profile = await Profile.findOneAndUpdate(
       {
         userId,
@@ -116,25 +118,13 @@ export class AddressRepository {
       },
       {
         new: true,
-        runValidators: true,
       },
     );
 
     return (
       profile?.addresses.find(
-        (address) => address._id?.toString() === addressId,
+        (address) => address.userId?.toString() === addressId,
       ) ?? null
-    );
-  }
-
-  async removeDefaultFromAllAddresses(userId: string) {
-    return Profile.updateOne(
-      { userId },
-      {
-        $set: {
-          "addresses.$[].isDefault": false,
-        },
-      },
     );
   }
 }
