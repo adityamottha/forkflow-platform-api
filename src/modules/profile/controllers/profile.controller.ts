@@ -44,9 +44,10 @@ export class ProfileController {
 
   // GET PROFILE CONTROLLER --------------
   async getProfile(req: Request, res: Response) {
-    const userId = req.user?.userId;
+    const userId = req.user?._id;
+    console.log(userId);
 
-    const profile = await profileService.getProfile(userId || "");
+    const profile = await profileService.getProfile(userId);
 
     return res
       .status(200)

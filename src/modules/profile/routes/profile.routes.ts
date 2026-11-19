@@ -27,7 +27,7 @@ router.patch(
 
 // GET PROFILE ---------------
 router.get(
-  "/profile/me",
+  "/me",
   verifyJWT,
   AsyncHandler(profileController.getProfile.bind(profileController)),
 );
