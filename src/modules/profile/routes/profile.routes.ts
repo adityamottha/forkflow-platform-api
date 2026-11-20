@@ -20,7 +20,7 @@ router.post(
 
 // UPDATE -------------
 router.patch(
-  "/profile/update-profile",
+  "/update-profile",
   verifyJWT,
   AsyncHandler(profileController.updateProfile.bind(profileController)),
 );
