@@ -61,6 +61,7 @@ export const updateProfileSchema = z
       .optional(),
 
     gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
+    phoneNumber: z.string().min(10).max(15).optional(),
 
     bio: z
       .string()
